@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>::Kanom Pang::</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <style>
+    body
+    {
+      padding-top: 175px;
+    }
+
+    .navbar-brand,
+    .navbar-nav li a {
+        line-height: 75px;
+        height: 75px;
+        padding-top: 0;
+        font-size: 24px;
+    }
+
+    #mainBody {
+        position: relative;
+        width: 872px;
+        margin-left: auto ;
+        margin-right: auto ;
+    }
+
+    #frmChart {
+      position: absolute;
+      border: 2px solid;
+      border-radius: 25px;
+      width: 872px;
+      height: 495px;
+    }
+
+    #valueChart {
+      position: absolute;
+      left: 25px;
+      top: 10px;
+      width: 822px;
+      height: 475px;
+    }
+
+    #row0 {
+      padding-top: 40px;
+      padding-bottom: 40px;
+    }
+
+    #row1 {
+      padding-top: 40px;
+      padding-bottom: 40px;
+    }
+
+
+    .mycaption {
+      padding: 10px;
+    }
+    
+    </style>
+    
+  </head>
+  <body>
+
+    <div class="navbar navbar-fixed-top navbar-inverse" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#"><img src="images/dw_logo.png" height="150px" style="margin-right: 10px"></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class=""><a href="device_list.html">List</a></li>
+            <li class="active"><a href="#">Monitor</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <center>
+      <div id="mainBody">
+        <div id="frmChart">
+          <div id="valueChart" style=""></div>
+        </div>
+      </div>
+    </cetner>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="js/jquery-2.1.1.min.js"></script>
+    <script src="js/highcharts/highcharts.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+    <script language="javascript">
+
+      var websock = new WebSocket("ws://192.168.1.201:8888/dwinner");
+      var value = 0;
+      var type = 0;
+      var d_id = {#ID};
+
+      websock.onopen = function () {
+        console.log("Websock opened.");
+        websock.send('{"reqid": ' + d_id +'}');
+      }
+
+      websock.onmessage = function (evt) {
+        var json_out = JSON.parse(evt.data);
+
+        if (json_out.ErrMsg) {
+          console.log("ErrMsg from server : " + json_out.ErrMsg);
+        }
+
+        if (json_out.Value) {
+          value = parseInt(json_out.Value);
+          console.log("Reveiced value : " + value);
+        }
+
+        if (json_out.Type) {
+          type = parseInt(json_out.Type);
+          console.log("Reveiced type : " + type);
+        }
+
+      }
+
+      websock.onclose = function () {
+        console.log("Websock closed.");
+      }
+
+      $(function () {
+        $(document).ready(function () {
+
+              Highcharts.setOptions({
+                  global: {
+                      useUTC: false
+                  }
+              });
+
+              $('#valueChart').highcharts({
+                  chart: {
+                      type: 'spline',
+                      backgroundColor:'rgba(0, 0, 0, 1)',
+                      animation: Highcharts.svg, // don't animate in old IE
+                      marginRight: 10,
+                      events: {
+                          load: function () {
+
+                              // set up the updating of the chart each second
+                              var series = this.series[0];
+                              setInterval(function () {
+                                  var x = (new Date()).getTime(), // current time
+                                      y = value;
+                                  series.addPoint([x, y], true, true);
+                              }, 500);
+                          }
+                      },
+                      borderRadius: 20
+                  },
+                  colors: ['#00FF00'],
+                  title: {
+                      text: ('Data from device ' + d_id),
+                      style: {
+                          color: '#FFFFFF',
+                          fontWeight: 'bold'
+                      }
+                  },
+                  xAxis: {
+                      type: 'datetime',
+                      tickPixelInterval: 150,
+                      labels: {
+                          style: {
+                              color: '#FFFFFF'
+                          }
+                      } 
+                  },
+                  yAxis: {
+                      min: 0,
+                      title: {
+                          text: 'Value',
+                          style: {
+                              color: '#FFFFFF',
+                              fontWeight: 'bold'
+                          }
+                      },
+                      plotLines: [{
+                          value: 0,
+                          width: 1,
+                          color: '#808080'
+                      }],
+                      labels: {
+                          style: {
+                              color: '#FFFFFF'
+                          }
+                      }
+                  },
+                  tooltip: {
+                      formatter: function () {
+                          return '<b>' + this.series.name + '</b><br/>' +
+                              Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                              Highcharts.numberFormat(this.y, 2);
+                      }
+                  },
+                  legend: {
+                      enabled: false
+                  },
+                  exporting: {
+                      enabled: false
+                  },
+                  series: [{
+                      name: 'Value',
+                      data: (function () {
+                          // generate an array of random data
+                          var data = [],
+                              time = (new Date()).getTime(),
+                              i;
+
+                          for (i = -99; i <= 0; i += 1) {
+                              data.push({
+                                  x: time + i * 1000,
+                                  y: 0
+                              });
+                          }
+                          return data;
+                      }())
+                  }]
+              });
+        });
+      });
+
+    </script>
+  </body>
+</html>
