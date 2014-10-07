@@ -10,8 +10,8 @@ dht DHT;
 GOFi2cOLED GOFoled;
 
 #define ESP8266_E_PIN  13
-#define SSID  "DEAWARE_SYSTEM"
-#define PASS  "DEAW1234567890"
+#define SSID  "<your_ssid>"
+#define PASS  "<your_password>"
 #define SERVER_IP   "192.168.1.201"
 #define SERVER_PORT   "9999"
 

@@ -212,7 +212,7 @@
            return false;
       });
 
-      var websock = new WebSocket("ws://192.168.1.201:8888/dwlogger");
+      var websock = new WebSocket("ws://<your_server_ip>:8888/dwlogger");
       var adc0 = 0
 
       websock.onopen = function () {
